@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  activeModules Json[] // ["Dashboard", "Orders", etc.]
+  accounts      Account[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Client {
+  id      String  @id @default(cuid())
+  name    String
+  phone   String?
+  address String?
+  orders  Order[]
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  clientId    String
+  client      Client      @relation(fields: [clientId], references: [id])
+  status      OrderStatus
+  totalAmount Float
+  items       Json[] // Array of item objects
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model GlassMaster {
+  id           String @id @default(cuid())
+  type         String
+  color        String
+  mmRange      String // "4-6mm"
+  pricePerSqFt Float
+}
+
+model AluminumMaster {
+  id        String @id @default(cuid())
+  buildType String // "domal", "Z-section"
+  constants Json // {bearingOffset: 6.375, handleOffset: 1.875, glassWidthOffset: 0.625, glassHeightOffset: 2.5}
+}
+
+enum OrderStatus {
+  Pending
+  UnderProcess
+  ReadyToDispatch
+}

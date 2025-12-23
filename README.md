@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AK Bharmal Management Website
+
+A comprehensive ERP system for glass and aluminum windows manufacturing.
+
+## Tech Stack
+- **Framework**: Next.js 15+ (App Router)
+- **Database**: PostgreSQL with Prisma ORM (v7)
+- **Styling**: Tailwind CSS
+- **Components**: shadcn/ui
+- **Charts**: Recharts
+- **Auth**: NextAuth.js
+- **Notifications**: Sonner
+
+## Features
+- **Dashboard**: Real-time analytics and revenue trends.
+- **Client Management**: Full CRUD for clients and order history.
+- **Order System**:
+  - Dynamic pricing (auto-saves new masters).
+  - Aluminum manufacturing formulas.
+  - Labor tracking.
+  - Multi-unit size display (inch/feet).
+- **Workshop**: Production workflow with item-level status tracking.
+- **CMS**: Master data management for materials.
+- **UAM**: Per-user module access control.
+- **Accounts**: Tracking ready-to-dispatch orders.
 
 ## Getting Started
 
-First, run the development server:
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2. **Database Setup**:
+   Create a `.env` file based on `.env.example` and add your `DATABASE_URL`.
+   ```bash
+   npx prisma db push
+   npx prisma db seed
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. **Run Design System (Optional)**:
+   The project uses shadcn/ui. You can add more components using `npx shadcn@latest add`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+4. **Start Development Server**:
+   ```bash
+   npm run dev
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Manufacturing Formula
+The system automatically calculates aluminum component sizes:
+- **Bearing**: (Width - offset) / 2
+- **Handle**: Height - offset
+- **Glass Width**: Bearing + offset
+- **Glass Height**: Handle - offset
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+These offsets are configurable per build type in the CMS.
