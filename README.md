@@ -54,4 +54,3 @@ The system automatically calculates aluminum component sizes:
 - **Glass Height**: Handle - offset
 
 These offsets are configurable per build type in the CMS.
-Best App
