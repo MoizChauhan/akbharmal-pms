@@ -91,7 +91,7 @@ export const GlassTable = ({ data }: { data: any[] }) => {
                                 <TableCell className="font-medium">{item.type}</TableCell>
                                 <TableCell>{item.color}</TableCell>
                                 <TableCell>{item.mmRange}</TableCell>
-                                <TableCell>₹{parseFloat(item.pricePerSqFt).toFixed(2)}</TableCell>
+                                <TableCell>₹{parseFloat(item.pricePerSqFt)}</TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
                                         <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
@@ -227,7 +227,7 @@ export const AluminumTable = ({ data }: { data: any[] }) => {
                         {data.map((item) => (
                             <TableRow key={item.id}>
                                 <TableCell className="font-medium align-top">{item.buildType}</TableCell>
-                                <TableCell className="align-top">₹{parseFloat(item.pricePerSqFt).toFixed(2)}</TableCell>
+                                <TableCell className="align-top">₹{parseFloat(item.pricePerSqFt)}</TableCell>
                                 <TableCell>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                                         <div className="bg-slate-50 border rounded p-1">

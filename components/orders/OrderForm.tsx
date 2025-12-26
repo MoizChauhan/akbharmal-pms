@@ -45,7 +45,7 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters, initialData 
     // Helper for formatting size
     const formatSize = (inches: number) => {
         if (!inches && inches !== 0) return "-";
-        const feet = (inches / 12).toFixed(2);
+        const feet = (inches / 12);
         return `${inches}in (${feet}ft)`;
     };
 
@@ -79,7 +79,7 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters, initialData 
             setAluminumRate(master.pricePerSqFt || 0);
             if (width > 0 && height > 0) {
                 const sqFt = (width * height) / 144;
-                setPrice(Number((master.pricePerSqFt * sqFt).toFixed(2)));
+                setPrice(Number(master.pricePerSqFt * sqFt));
             }
         }
     }
@@ -88,7 +88,7 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters, initialData 
     useEffect(() => {
         if (itemType === 'aluminum' && aluminumId && width > 0 && height > 0) {
             const sqFt = (width * height) / 144;
-            setPrice(Number((aluminumRate * sqFt).toFixed(2)));
+            setPrice(Number(aluminumRate * sqFt));
         }
     }, [aluminumRate, width, height, aluminumId, itemType]);
 
@@ -99,7 +99,7 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters, initialData 
             const master = glassMasters.find(g => g.id === id);
             if (master) {
                 const sqFt = (w * h) / 144;
-                setPrice(Number((master.pricePerSqFt * sqFt).toFixed(2)));
+                setPrice(Number(master.pricePerSqFt * sqFt));
             }
         }
     }
@@ -398,8 +398,8 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters, initialData 
                                             {item.type === 'aluminum' && <div className="text-[10px] italic">{item.details?.buildType} (@ {item.details?.rate}/sqft)</div>}
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <div>{item.quantity} x ₹{(item.price || 0).toFixed(2)}</div>
-                                            <div className="font-bold">₹{(item.total || 0).toFixed(2)}</div>
+                                            <div>{item.quantity} x ₹{item.price || 0}</div>
+                                            <div className="font-bold">₹{item.total || 0}</div>
                                         </TableCell>
                                         <TableCell>
                                             <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}>
@@ -412,7 +412,7 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters, initialData 
                         </Table>
                         <div className="mt-8 pt-4 border-t flex justify-between items-center">
                             <span className="text-lg font-bold">Total</span>
-                            <span className="text-2xl font-bold text-indigo-700">₹{(totalPrice || 0).toFixed(2)}</span>
+                            <span className="text-2xl font-bold text-indigo-700">₹{totalPrice || 0}</span>
                         </div>
                     </CardContent>
                     <div className="p-6 pt-0">

@@ -44,7 +44,7 @@ export const WorkshopList = ({ orders }: WorkshopListProps) => {
 
     const formatSize = (inches: number) => {
         if (!inches && inches !== 0) return "-";
-        const feet = (inches / 12).toFixed(2);
+        const feet = (inches / 12);
         return `${inches}" (${feet}ft)`;
     };
 

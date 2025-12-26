@@ -50,7 +50,7 @@ export const OrderTable = ({ data }: OrderTableProps) => {
                             <TableCell className="font-medium">{order.client?.name}</TableCell>
                             <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                             <TableCell>{order.items?.length || 0}</TableCell>
-                            <TableCell>₹{order.totalAmount != null ? parseFloat(order.totalAmount).toFixed(2) : '0.00'}</TableCell>
+                            <TableCell>₹{order.totalAmount != null ? parseFloat(order.totalAmount) : '0.00'}</TableCell>
                             <TableCell>
                                 <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-white ${getStatusColor(order.status)}`}>
                                     {order.status}
