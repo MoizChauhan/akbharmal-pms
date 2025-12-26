@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge"; // Need to check if badge exists or I use span
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface OrderTableProps {
@@ -57,6 +57,9 @@ export const OrderTable = ({ data }: OrderTableProps) => {
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
+                                <Button variant="ghost" size="icon" onClick={() => router.push(`/orders/${order.id}/edit`)}>
+                                    <Edit className="h-4 w-4" />
+                                </Button>
                                 <Button variant="ghost" size="icon" onClick={() => router.push(`/orders/${order.id}`)}>
                                     <Eye className="h-4 w-4" />
                                 </Button>

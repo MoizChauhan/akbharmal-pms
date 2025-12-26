@@ -17,10 +17,7 @@ export default auth((req) => {
     ].some((route) => nextUrl.pathname.startsWith(route));
 
     if (isModuleRoute && !isLoggedIn) {
-        // For demo purposes, we can skip redirection if we want to allow browsing without actual login setup
-        // But following spec, we should protect it.
-        // In a production app, redirect to login:
-        // return NextResponse.redirect(new URL("/api/auth/signin", nextUrl));
+        return NextResponse.redirect(new URL("/login", nextUrl));
     }
 
     if (isLoggedIn && isModuleRoute) {

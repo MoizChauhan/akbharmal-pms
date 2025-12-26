@@ -9,7 +9,8 @@ datasource db {
 model User {
   id            String    @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String    @unique
+  password      String?
   emailVerified DateTime?
   image         String?
   activeModules Json[] // ["Dashboard", "Orders", etc.]
@@ -44,14 +45,48 @@ model Client {
 }
 
 model Order {
-  id          String      @id @default(cuid())
-  clientId    String
-  client      Client      @relation(fields: [clientId], references: [id])
-  status      OrderStatus
-  totalAmount Float
-  items       Json[] // Array of item objects
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id            String        @id @default(cuid())
+  clientId      String
+  client        Client        @relation(fields: [clientId], references: [id])
+  status        OrderStatus
+  paymentStatus PaymentStatus @default(Unpaid)
+  totalAmount   Float
+  paidAmount    Float         @default(0)
+  items         OrderItem[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model OrderItem {
+  id      String     @id @default(cuid())
+  orderId String
+  order   Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type    String // glass, aluminum, labor
+  status  ItemStatus @default(Pending)
+
+  // Dimensions & Details
+  width    Float?
+  height   Float?
+  quantity Int    @default(1)
+
+  // Product Details
+  description   String? // For labor or specific names
+  specification String? // e.g. "Domal 27x65" or "Clear 12mm"
+
+  // Pricing
+  price Float // Total price for this item
+  rate  Float? // Base rate used (e.g. per sqft)
+
+  // Technical Snapshots (Calculations, specific flags)
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ItemStatus {
+  Pending
+  Completed
 }
 
 model GlassMaster {
@@ -63,13 +98,20 @@ model GlassMaster {
 }
 
 model AluminumMaster {
-  id        String @id @default(cuid())
-  buildType String // "domal", "Z-section"
-  constants Json // {bearingOffset: 6.375, handleOffset: 1.875, glassWidthOffset: 0.625, glassHeightOffset: 2.5}
+  id           String @id @default(cuid())
+  buildType    String // "domal", "Z-section"
+  constants    Json // {bearingOffset: 6.375, handleOffset: 1.875, glassWidthOffset: 0.625, glassHeightOffset: 2.5}
+  pricePerSqFt Float  @default(0)
 }
 
 enum OrderStatus {
   Pending
   UnderProcess
   ReadyToDispatch
+}
+
+enum PaymentStatus {
+  Unpaid
+  Partial
+  Paid
 }

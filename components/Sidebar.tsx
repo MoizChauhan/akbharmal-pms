@@ -11,10 +11,9 @@ import {
     Database,
     ShieldCheck,
     CreditCard,
-    Menu,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
+// Update routes to have labels matching the seed data and module names
 const routes = [
     {
         label: "Dashboard",
@@ -41,6 +40,12 @@ const routes = [
         color: "text-orange-700",
     },
     {
+        label: "Accounts",
+        icon: CreditCard,
+        href: "/accounts",
+        color: "text-indigo-400",
+    },
+    {
         label: "CMS",
         icon: Database,
         href: "/cms",
@@ -52,20 +57,21 @@ const routes = [
         href: "/uam",
         color: "text-green-700",
     },
-    {
-        label: "Accounts",
-        icon: CreditCard,
-        href: "/accounts",
-        color: "text-indigo-400",
-    },
 ];
 
 interface SidebarProps {
     className?: string;
+    activeModules?: string[];
 }
 
-export const Sidebar = ({ className }: SidebarProps) => {
+export const Sidebar = ({ className, activeModules = [] }: SidebarProps) => {
     const pathname = usePathname();
+
+    // Filter routes based on active modules
+    // Dashboard is always available if logged in, others depend on permission
+    const filteredRoutes = routes.filter(route =>
+        route.label === "Dashboard" || activeModules.includes(route.label)
+    );
 
     return (
         <div className={cn("space-y-4 py-4 flex flex-col h-full bg-slate-900 text-white", className)}>
@@ -76,7 +82,7 @@ export const Sidebar = ({ className }: SidebarProps) => {
                     </h1>
                 </Link>
                 <div className="space-y-1">
-                    {routes.map((route) => (
+                    {filteredRoutes.map((route) => (
                         <Link
                             key={route.href}
                             href={route.href}

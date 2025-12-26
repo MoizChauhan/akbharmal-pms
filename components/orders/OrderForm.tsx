@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus, Trash2, Calculator } from "lucide-react";
+import { Plus, Trash2, Calculator, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,12 +16,13 @@ interface OrderFormProps {
     clients: any[];
     glassMasters: any[];
     aluminumMasters: any[];
+    initialData?: any;
 }
 
-export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormProps) => {
+export const OrderForm = ({ clients, glassMasters, aluminumMasters, initialData }: OrderFormProps) => {
     const router = useRouter();
-    const [clientId, setClientId] = useState("");
-    const [items, setItems] = useState<any[]>([]);
+    const [clientId, setClientId] = useState(initialData?.clientId || "");
+    const [items, setItems] = useState<any[]>(initialData?.items || []);
     const [loading, setLoading] = useState(false);
 
     // Current Item State
@@ -38,6 +39,8 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
         color: "",
         mmRange: "4-6mm"
     });
+
+    const [aluminumRate, setAluminumRate] = useState<number>(0);
 
     // Helper for formatting size
     const formatSize = (inches: number) => {
@@ -68,6 +71,27 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
         };
     }, [itemType, aluminumId, width, height, aluminumMasters]);
 
+    // Handle Aluminum Selection
+    const handleAluminumChange = (id: string) => {
+        setAluminumId(id);
+        const master = aluminumMasters.find(m => m.id === id);
+        if (master) {
+            setAluminumRate(master.pricePerSqFt || 0);
+            if (width > 0 && height > 0) {
+                const sqFt = (width * height) / 144;
+                setPrice(Number((master.pricePerSqFt * sqFt).toFixed(2)));
+            }
+        }
+    }
+
+    // Effect to recalculate aluminum price if rate/size changes
+    useEffect(() => {
+        if (itemType === 'aluminum' && aluminumId && width > 0 && height > 0) {
+            const sqFt = (width * height) / 144;
+            setPrice(Number((aluminumRate * sqFt).toFixed(2)));
+        }
+    }, [aluminumRate, width, height, aluminumId, itemType]);
+
     // Handle Glass Selection to auto-set price
     const handleGlassChange = (id: string, w: number, h: number) => {
         setGlassId(id);
@@ -78,6 +102,37 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
                 setPrice(Number((master.pricePerSqFt * sqFt).toFixed(2)));
             }
         }
+    }
+
+    const editItem = (item: any) => {
+        setItemType(item.type);
+        setQuantity(item.quantity);
+        setPrice(item.price);
+
+        if (item.type === 'glass') {
+            setWidth(item.details.width);
+            setHeight(item.details.height);
+            if (item.details.glassMasterId) {
+                setGlassId(item.details.glassMasterId);
+            } else {
+                setGlassId('custom');
+                setCustomGlassDetails({
+                    type: item.details.glassType,
+                    color: item.details.color,
+                    mmRange: item.details.mmRange
+                });
+            }
+        } else if (item.type === 'aluminum') {
+            setAluminumId(item.details.aluminumMasterId);
+            setWidth(item.details.width);
+            setHeight(item.details.height);
+            setAluminumRate(item.details.rate || 0);
+        } else {
+            setManualDescription(item.details.description);
+        }
+
+        // Remove from list so it can be re-added
+        setItems(items.filter(i => i.id !== item.id));
     }
 
     const addItem = () => {
@@ -118,6 +173,7 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
                 buildType: master?.buildType,
                 width,
                 height,
+                rate: aluminumRate,
                 calculations: aluminumCalculations
             };
         } else {
@@ -126,12 +182,15 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
 
         setItems([...items, newItem]);
 
-        // Reset fields but keep width/height if user wants to add multiple of same size
+        // Reset fields
         setManualDescription("");
         setPrice(0);
         setQuantity(1);
         setGlassId("");
         setAluminumId("");
+        setAluminumRate(0);
+        setWidth(0);
+        setHeight(0);
     };
 
     const removeItem = (id: string) => {
@@ -146,8 +205,11 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
 
         setLoading(true);
         try {
-            const res = await fetch("/api/orders", {
-                method: "POST",
+            const url = initialData?.id ? `/api/orders/${initialData.id}` : "/api/orders";
+            const method = initialData?.id ? "PATCH" : "POST";
+
+            const res = await fetch(url, {
+                method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     clientId,
@@ -158,11 +220,11 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
 
             if (!res.ok) throw new Error("Failed");
 
-            toast.success("Order created!");
+            toast.success(initialData?.id ? "Order updated!" : "Order created!");
             router.push("/orders");
             router.refresh();
         } catch (e) {
-            toast.error("Failed to create order");
+            toast.error("Failed to save order");
         } finally {
             setLoading(false);
         }
@@ -199,7 +261,7 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
                                     <>
                                         <div>
                                             <Label>Width (in)</Label>
-                                            <Input type="number" value={width} onChange={e => {
+                                            <Input type="number" value={width || ''} onChange={e => {
                                                 const w = Number(e.target.value);
                                                 setWidth(w);
                                                 if (itemType === 'glass') handleGlassChange(glassId, w, height);
@@ -207,7 +269,7 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
                                         </div>
                                         <div>
                                             <Label>Height (in)</Label>
-                                            <Input type="number" value={height} onChange={e => {
+                                            <Input type="number" value={height || ''} onChange={e => {
                                                 const h = Number(e.target.value);
                                                 setHeight(h);
                                                 if (itemType === 'glass') handleGlassChange(glassId, width, h);
@@ -259,16 +321,22 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
                             </TabsContent>
 
                             <TabsContent value="aluminum" className="space-y-4">
-                                <div>
-                                    <Label>Build Type</Label>
-                                    <Select value={aluminumId} onValueChange={setAluminumId}>
-                                        <SelectTrigger><SelectValue placeholder="Select Build Type" /></SelectTrigger>
-                                        <SelectContent>
-                                            {aluminumMasters.map(a => (
-                                                <SelectItem key={a.id} value={a.id}>{a.buildType}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="col-span-2">
+                                        <Label>Build Type</Label>
+                                        <Select value={aluminumId} onValueChange={handleAluminumChange}>
+                                            <SelectTrigger><SelectValue placeholder="Select Build Type" /></SelectTrigger>
+                                            <SelectContent>
+                                                {aluminumMasters.map(a => (
+                                                    <SelectItem key={a.id} value={a.id}>{a.buildType}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="col-span-1">
+                                        <Label>Rate (per SqFt)</Label>
+                                        <Input type="number" value={aluminumRate} onChange={e => setAluminumRate(Number(e.target.value))} />
+                                    </div>
                                 </div>
                                 {aluminumCalculations && (
                                     <div className="p-4 bg-slate-50 rounded-md text-sm space-y-1">
@@ -290,7 +358,7 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
 
                             <div className="flex gap-4 items-end mt-4">
                                 <div className="flex-1">
-                                    <Label>Price (Total Item Price)</Label>
+                                    <Label>Price</Label>
                                     <Input type="number" value={price} onChange={e => setPrice(Number(e.target.value))} />
                                 </div>
                                 <div className="w-24">
@@ -318,7 +386,7 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
                             </TableHeader>
                             <TableBody>
                                 {items.map(item => (
-                                    <TableRow key={item.id}>
+                                    <TableRow key={item.id} className="cursor-pointer hover:bg-slate-50" onClick={() => editItem(item)}>
                                         <TableCell className="text-xs">
                                             <div className="font-bold uppercase text-indigo-600">{item.type}</div>
                                             <div className="text-muted-foreground">
@@ -327,13 +395,14 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
                                                     : `${item.details?.width}" x ${item.details?.height}"`}
                                             </div>
                                             {item.type === 'glass' && <div className="text-[10px] italic">{item.details?.glassType} ({item.details?.color})</div>}
+                                            {item.type === 'aluminum' && <div className="text-[10px] italic">{item.details?.buildType} (@ {item.details?.rate}/sqft)</div>}
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div>{item.quantity} x ₹{item.price}</div>
                                             <div className="font-bold">₹{item.total}</div>
                                         </TableCell>
                                         <TableCell>
-                                            <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)}>
+                                            <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}>
                                                 <Trash2 className="w-4 h-4 text-red-500" />
                                             </Button>
                                         </TableCell>
@@ -348,7 +417,7 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters }: OrderFormP
                     </CardContent>
                     <div className="p-6 pt-0">
                         <Button className="w-full bg-slate-900 hover:bg-slate-800" size="lg" onClick={onSubmit} disabled={loading}>
-                            {loading ? "Creating..." : "Create Order"}
+                            {loading ? "Saving..." : (initialData?.id ? "Update Order" : "Create Order")}
                         </Button>
                     </div>
                 </Card>

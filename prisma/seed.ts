@@ -1,14 +1,26 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
+import "dotenv/config";
+import bcrypt from "bcryptjs";
+
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
+    const hashedPassword = await bcrypt.hash('password123', 10);
+
     // Create a default user
     const admin = await prisma.user.upsert({
         where: { email: 'admin@akbharmal.com' },
-        update: {},
+        update: {
+            password: hashedPassword
+        },
         create: {
             email: 'admin@akbharmal.com',
             name: 'Admin User',
+            password: hashedPassword,
             activeModules: [
                 "Dashboard",
                 "Clients",
@@ -36,6 +48,7 @@ async function main() {
         data: [
             {
                 buildType: 'Domal 27x65',
+                pricePerSqFt: 350,
                 constants: {
                     bearingOffset: 6.375,
                     handleOffset: 1.875,
@@ -45,6 +58,7 @@ async function main() {
             },
             {
                 buildType: 'Z-Section',
+                pricePerSqFt: 180,
                 constants: {
                     bearingOffset: 4.5,
                     handleOffset: 1.5,
@@ -68,7 +82,8 @@ async function main() {
         }
     });
 
-    console.log({ admin, client });
+    console.log('Seed completed successfully');
+    console.log({ adminId: admin.id, clientId: client.id });
 }
 
 main()
@@ -78,4 +93,5 @@ main()
     })
     .finally(async () => {
         await prisma.$disconnect();
+        await pool.end();
     });
