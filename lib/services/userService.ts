@@ -15,11 +15,22 @@ export const updateUser = async (userId: string, data: { name?: string, email?: 
     if (data.password) updateData.password = await bcrypt.hash(data.password, 10);
     if (data.modules) updateData.activeModules = data.modules as Prisma.InputJsonValue[];
 
+
     return prisma.user.update({
         where: { id: userId },
         data: updateData
     });
 }
+
+export const updateUserModules = async (userId: string, modules: string[]) => {
+    return prisma.user.update({
+        where: { id: userId },
+        data: {
+            activeModules: modules as Prisma.InputJsonValue[]
+        }
+    });
+}
+
 
 export const createUser = async (data: { name: string, email: string, password?: string }) => {
     const hashedPassword = data.password ? await bcrypt.hash(data.password, 10) : null;
