@@ -398,8 +398,8 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters, initialData 
                                             {item.type === 'aluminum' && <div className="text-[10px] italic">{item.details?.buildType} (@ {item.details?.rate}/sqft)</div>}
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <div>{item.quantity} x ₹{item.price}</div>
-                                            <div className="font-bold">₹{item.total}</div>
+                                            <div>{item.quantity} x ₹{item.price.toFixed(2)}</div>
+                                            <div className="font-bold">₹{item.total.toFixed(2)}</div>
                                         </TableCell>
                                         <TableCell>
                                             <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}>
@@ -412,7 +412,7 @@ export const OrderForm = ({ clients, glassMasters, aluminumMasters, initialData 
                         </Table>
                         <div className="mt-8 pt-4 border-t flex justify-between items-center">
                             <span className="text-lg font-bold">Total</span>
-                            <span className="text-2xl font-bold text-indigo-700">₹{totalPrice}</span>
+                            <span className="text-2xl font-bold text-indigo-700">₹{totalPrice.toFixed(2)}</span>
                         </div>
                     </CardContent>
                     <div className="p-6 pt-0">
